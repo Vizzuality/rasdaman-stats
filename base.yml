@@ -1,0 +1,7 @@
+base:
+  build: .
+  ports:
+    - "5750:5750"
+  environment:
+    PORT: 5750
+  container_name: rasdaman-stats
