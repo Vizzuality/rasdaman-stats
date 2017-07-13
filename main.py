@@ -1,7 +1,7 @@
 """Main Script"""
 
 import os
-from ps import app
+from rasdaman_stats import app
 
 
 # This is only used when running locally. When running live, Gunicorn runs

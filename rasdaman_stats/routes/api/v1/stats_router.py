@@ -3,10 +3,10 @@
 import logging
 
 from flask import jsonify, Blueprint
-from ps.routes.api import error
-from ps.validators import validate_greeting
-from ps.middleware import set_something
-from ps.serializers import serialize_greeting
+from rasdaman_stats.routes.api import error
+from rasdaman_stats.validators import validate_greeting
+from rasdaman_stats.middleware import set_something
+from rasdaman_stats.serializers import serialize_greeting
 
 psone_endpoints = Blueprint('psone_endpoints', __name__)
 

@@ -5,10 +5,10 @@ import json
 import logging
 
 from flask import Flask
-from ps.config import SETTINGS
-from ps.routes.api import error
-from ps.routes.api.v1 import psone_endpoints
-from ps.utils.files import load_config_json
+from rasdaman_stats.config import SETTINGS
+from rasdaman_stats.routes.api import error
+from rasdaman_stats.routes.api.v1 import psone_endpoints
+from rasdaman_stats.utils.files import load_config_json
 import CTRegisterMicroserviceFlask
 
 logging.basicConfig(
@@ -28,7 +28,7 @@ info = load_config_json('register')
 swagger = load_config_json('swagger')
 CTRegisterMicroserviceFlask.register(
     app=app,
-    name='ps',
+    name='rasdaman-adapter',
     info=info,
     swagger=swagger,
     mode=CTRegisterMicroserviceFlask.AUTOREGISTER_MODE if os.getenv('ENVIRONMENT') == 'dev' else CTRegisterMicroserviceFlask.NORMAL_MODE,

@@ -2,7 +2,7 @@
 
 from functools import wraps
 
-from ps.routes.api import error
+from rasdaman_stats.routes.api import error
 
 
 def validate_greeting(func):
