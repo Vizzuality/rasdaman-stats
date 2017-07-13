@@ -1,14 +1,4 @@
 {
     "name": "#(service.name)",
-    "endpoints": [
-        {
-            "path": "/v1/psone/hello",
-            "method": "GET",
-            "binary": true,
-            "redirect": {
-                "method": "GET",
-                "path": "/api/v1/psone/hello"
-            }
-        }
-    ]
+    "endpoints": []
 }
