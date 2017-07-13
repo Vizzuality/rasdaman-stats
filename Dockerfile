@@ -1,20 +1,32 @@
-FROM python:3.6-alpine
+FROM python:3.6
 MAINTAINER Sergio Gordillo sergio.gordillo@vizzuality.com
 
 ENV NAME rasdaman_stats
 ENV USER rasdaman_stats
 
-RUN apk update && apk upgrade && \
-   apk add --no-cache --update bash git openssl-dev build-base alpine-sdk \
-   libffi-dev postgresql-dev gcc python3-dev musl-dev
+RUN apt-get update && apt-get install -yq \
+    gcc \
+    bash \
+    git \
+    build-essential \
+    libcurl4-openssl-dev \
+    libffi-dev \
+    libjpeg-dev \
+    libmysqlclient-dev \
+    libpng12-dev \
+    libpq-dev \
+    libssl-dev \
+    libxml2-dev \
+    libxslt1-dev \
+    libgdal-dev
 
-RUN addgroup $USER && adduser -s /bin/bash -D -G $USER $USER
+RUN groupadd $USER && useradd -g $USER $USER -s /bin/bash
 
 RUN easy_install pip && pip install --upgrade pip
-RUN pip install virtualenv gunicorn gevent
+RUN pip install virtualenv gunicorn gevent numpy
 
 RUN mkdir -p /opt/$NAME
-RUN cd /opt/$NAME && virtualenv venv && source venv/bin/activate
+RUN cd /opt/$NAME && virtualenv venv && /bin/bash -c "source venv/bin/activate"
 COPY requirements.txt /opt/$NAME/requirements.txt
 RUN cd /opt/$NAME && pip install -r requirements.txt
 

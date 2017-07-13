@@ -7,7 +7,7 @@ import logging
 from flask import Flask
 from rasdaman_stats.config import SETTINGS
 from rasdaman_stats.routes.api import error
-from rasdaman_stats.routes.api.v1 import psone_endpoints
+from rasdaman_stats.routes.api.v1 import rasdastats_endpoints
 from rasdaman_stats.utils.files import load_config_json
 import CTRegisterMicroserviceFlask
 
@@ -21,7 +21,7 @@ logging.basicConfig(
 app = Flask(__name__)
 
 # Routing
-app.register_blueprint(psone_endpoints, url_prefix='/api/v1/psone')
+app.register_blueprint(rasdastats_endpoints, url_prefix='/api/v1/rasdastats')
 
 # CT
 info = load_config_json('register')

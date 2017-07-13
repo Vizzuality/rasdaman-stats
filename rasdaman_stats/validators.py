@@ -5,7 +5,7 @@ from functools import wraps
 from rasdaman_stats.routes.api import error
 
 
-def validate_greeting(func):
+def validate_request(func):
     """Validation"""
     @wraps(func)
     def wrapper(*args, **kwargs):
