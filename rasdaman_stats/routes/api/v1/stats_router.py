@@ -7,7 +7,10 @@ from flask import jsonify, Blueprint
 from rasdaman_stats.routes.api import error
 from rasdaman_stats.validators import validate_request
 # from rasdaman_stats.middleware import set_something
-from rasdaman_stats.serializers import serialize_greeting
+# from rasdaman_stats.serializers import serialize_greeting
+
+from rasdaman_stats.services import query_service
+
 
 rasdastats_endpoints = Blueprint('rasdastats_endpoints', __name__)
 
@@ -30,5 +33,7 @@ rasdastats_endpoints = Blueprint('rasdastats_endpoints', __name__)
 @rasdastats_endpoints.route('/stats/<dataset_id>', methods=['POST'])
 def stats(dataset_id):
     """Queries the stats for a certain raster, with an optional mask"""
-    logging.info(str.join('Obtaining stats for dataset_id', dataset_id))
-    return None
+    logging.info('[StatsRouter] Obtaining stats for dataset_id: ' + dataset_id)
+    return query_service.get_raster({
+        'dataset_id': dataset_id
+    })
