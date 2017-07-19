@@ -14,5 +14,5 @@ develop:
     API_VERSION: v1
   command: develop
   volumes:
-    - ./rasdaman_stats:/opt/rasdaman-adapter/rasdaman_stats
+    - ./rasdaman_stats:/opt/rasdaman_stats/rasdaman_stats
   restart: always
