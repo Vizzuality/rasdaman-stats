@@ -21,7 +21,8 @@ def get_raster(config):
     request_url = CT_URL + '/' + API_VERSION + '/query/' + config.get('datasetId')
 
     vector_mask = get_geostore(config)
-    bbox = 
+    bbox = vector_mask["data"]["attributes"]["bbox"]
+    logging.info("BBOX: " + ', '.join(str(coord) for coord in bbox))
     
 
     logging.info('[QueryService] Getting raster from rasdaman')
