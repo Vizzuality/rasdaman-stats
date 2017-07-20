@@ -4,3 +4,7 @@ requests==2.12.4
 rasterio==1.0a9
 numpy==1.13.1
 jsonpath==0.75
+shapely==1.6b4
+picogeojson==0.6.1
+georasters==0.5.7
+

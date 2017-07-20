@@ -1,8 +1,22 @@
 """API ROUTER"""
 
+import numpy as np
+import shapely
+import picogeojson
+import georasters as gr
+from affine import Affine
+from descartes import PolygonPatch
+from rasterstats import zonal_stats
+import fiona
+import rasterio
+from gdalconst import *
+from osgeo import ogr
+from io import BytesIO
+import tempfile
 import logging
 import json
 import copy
+import gdal
 from flask import jsonify, Blueprint, request
 from rasdaman_stats.routes.api import error
 from rasdaman_stats.validators import validate_request
@@ -30,8 +44,10 @@ def stats(dataset_id):
     
     options = {**dataset, **geostore}
 
-    logging.info(options)
+    logging.info("Options: " + str(options))
 
     raster = query_service.get_raster(options)
+
+    logging.info(raster)
 
     return "OK"
