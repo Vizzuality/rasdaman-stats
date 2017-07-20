@@ -39,15 +39,20 @@ def stats(dataset_id):
         'datasetId': dataset_id
     }
 
-    geostore = { 'geostoreId': request.json['geostoreId']} if request.json['geostoreId'] else {}
+    geostore = {
+        'geostoreId': request.json['geostoreId']
+    } if request.json['geostoreId'] else {}
 
+    additional_axes = {
+        'additional_axes': request.json['additionalAxes']
+    } if request.json['additionalAxes'] else {}
     
-    options = {**dataset, **geostore}
+    options = {**dataset, **geostore, **additional_axes}
 
     logging.info("Options: " + str(options))
 
-    raster = query_service.get_raster(options)
+    stats = query_service.get_stats(options)
 
-    logging.info(raster)
+    logging.info(stats)
 
-    return "OK"
+    return stats
