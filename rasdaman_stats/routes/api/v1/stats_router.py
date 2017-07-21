@@ -1,22 +1,9 @@
 """API ROUTER"""
 
-import numpy as np
-import shapely
-import picogeojson
-import georasters as gr
-from affine import Affine
-from descartes import PolygonPatch
-from rasterstats import zonal_stats
-import fiona
 import rasterio
-from gdalconst import *
-from osgeo import ogr
-from io import BytesIO
-import tempfile
 import logging
 import json
 import copy
-import gdal
 from flask import jsonify, Blueprint, request
 from rasdaman_stats.routes.api import error
 from rasdaman_stats.validators import validate_request
@@ -44,7 +31,7 @@ def stats(dataset_id):
     } if request.json['geostoreId'] else {}
 
     additional_axes = {
-        'additional_axes': request.json['additionalAxes']
+        'additionalAxes': request.json['additionalAxes']
     } if request.json['additionalAxes'] else {}
     
     options = {**dataset, **geostore, **additional_axes}
@@ -53,6 +40,6 @@ def stats(dataset_id):
 
     stats = query_service.get_stats(options)
 
-    logging.info(stats)
+    # logging.info(stats)
 
     return stats

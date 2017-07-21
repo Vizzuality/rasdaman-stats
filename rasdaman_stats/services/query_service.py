@@ -4,6 +4,9 @@ import os
 from requests import Request, Session
 import logging
 from rasdaman_stats.errors import Error
+import tempfile
+
+from osgeo import gdal, ogr
 
 
 from CTRegisterMicroserviceFlask import request_to_microservice
@@ -31,8 +34,16 @@ def get_stats(config):
 
     fields = get_fields(config)
     coverage_name = fields["coverageId"]
-    logging.info(coverage_name)
 
+    extra_axes_dct = config.get('additionalAxes')
+    extra_axes_str_arr = []
+    for axis, datum in extra_axes_dct.items():
+        extra_axes_str_arr.append( "".join([",", str(axis), "(\"", str(datum), "\")"]))
+    extra_axes_str = "".join(extra_axes_str_arr)
+    
+    # Only slicing - not subsetting
+    logging.info(str(extra_axes_str))
+    
     query_array = [
         "for cov in (",
         coverage_name,
@@ -41,7 +52,9 @@ def get_stats(config):
         ":".join([str(bbox[0]), str(bbox[2])]),
         "), Lat(",
         ":".join([str(bbox[1]), str(bbox[3])]),
-        ")], \"GTiff\")"
+        ")",
+        extra_axes_str,
+        "], \"GTiff\")"
     ]
 
     wcps_query = ''.join(query_array)
@@ -59,7 +72,17 @@ def get_stats(config):
 
     prepped = session.prepare_request(request)
     response = session.send(prepped)
-    return response.content
+
+    with tempfile.NamedTemporaryFile(suffix='.tiff', delete=False) as f:
+        logging.info(f.name)
+        for chunk in response.iter_content(chunk_size=1024):
+            f.write(chunk)
+            
+        dataset = gdal.Open(f.name)
+
+    
+
+    return dataset
 
 def get_geostore(config):
     logging.info('[QueryService] Getting geostore')
