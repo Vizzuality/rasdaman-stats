@@ -81,14 +81,14 @@ def get_stats(config):
         for chunk in response.iter_content(chunk_size=1024):
             f.write(chunk)
         # dataset = gdal.Open(f.name)
-        with tempfile.NamedTemporaryFile(suffix='.geo.json', delete=False) as g:
-            logging.debug("GEOJSON")
-            encoded_data = json.dumps(vector_mask["data"]["attributes"]["geojson"])
-            logging.debug(encoded_data)
-            g.write(encoded_data.encode())
-            g.close()
-            logging.info("Files: " + f.name + " " + g.name)
-            stats = zonal_stats(g.name, f.name, nodata=2, all_touched=True)
+    with tempfile.NamedTemporaryFile(suffix='.geo.json', delete=False) as g:
+        logging.debug("GEOJSON")
+        encoded_data = json.dumps(vector_mask["data"]["attributes"]["geojson"])
+        logging.debug(encoded_data)
+        g.write(encoded_data.encode())
+        g.close()
+        logging.info("Files: " + f.name + " " + g.name)
+        stats = zonal_stats(g.name, f.name, nodata=2, all_touched=True)
     logging.info("STATS")
     logging.info(stats)
     return stats

@@ -40,6 +40,4 @@ def stats(dataset_id):
 
     stats = query_service.get_stats(options)
 
-    # logging.info(stats)
-
-    return stats
+    return json.dumps({"data": stats})
