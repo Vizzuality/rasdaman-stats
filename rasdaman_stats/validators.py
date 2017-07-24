@@ -10,8 +10,8 @@ def validate_geostore(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         logging.info("[Rasdamanstats Validator] Validating the presence of geostore")
-        if 'geostoreId' in request.json:
-            geostore = request.json['geostoreId']
+        if 'geostore' in request.json:
+            geostore = request.json['geostore']
         try:
             geostore
         except NameError:

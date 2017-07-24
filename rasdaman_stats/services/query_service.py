@@ -32,9 +32,12 @@ def get_stats(config):
 
     extra_axes_dct = config.get('additionalAxes')
     extra_axes_str_arr = []
-    for axis, datum in extra_axes_dct.items():
-        extra_axes_str_arr.append( "".join([",", str(axis), "(\"", str(datum), "\")"]))
-    extra_axes_str = "".join(extra_axes_str_arr)
+    if extra_axes_dct:
+        for axis, datum in extra_axes_dct.items():
+            extra_axes_str_arr.append( "".join([",", str(axis), "(\"", str(datum), "\")"]))
+            extra_axes_str = "".join(extra_axes_str_arr)
+    else:
+        extra_axes_str = ""
 
     # Only slicing - not subsetting
     logging.info(str(extra_axes_str))
@@ -97,7 +100,7 @@ def get_geostore(config):
     logging.info('[QueryService] Getting geostore')
     try:
         request_options = {
-            'uri': '/geostore/' + config.get('geostoreId'),
+            'uri': '/geostore/' + config.get('geostore'),
             'method': 'GET'
         }
         response = request_to_microservice(request_options)

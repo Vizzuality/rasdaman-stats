@@ -27,12 +27,14 @@ def stats(dataset_id):
     }
 
     geostore = {
-        'geostoreId': request.json['geostoreId']
-    } if request.json['geostoreId'] else {}
+        'geostore': request.json['geostore']
+    } if request.json['geostore'] else {'geostore': None}
 
     additional_axes = {
         'additionalAxes': request.json['additionalAxes']
-    } if request.json['additionalAxes'] else {}
+    } if 'additionalAxes' in request.json else {
+        'additionalAxes': None
+    }
     
     options = {**dataset, **geostore, **additional_axes}
 
