@@ -88,7 +88,7 @@ def get_stats(config):
         g.write(encoded_data.encode())
         g.close()
         logging.info("Files: " + f.name + " " + g.name)
-        stats = zonal_stats(g.name, f.name, nodata=2, all_touched=True)
+        stats = zonal_stats(g.name, f.name, all_touched=True)
     logging.info("STATS")
     logging.info(stats)
     return stats
