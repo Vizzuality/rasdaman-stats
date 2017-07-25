@@ -50,7 +50,7 @@ COPY ./tests /opt/$NAME/tests
 RUN chown $USER:$USER /opt/$NAME
 
 # Tell Docker we are going to use this ports
-EXPOSE 5750
+EXPOSE 3076
 USER $USER
 
 # Launch script

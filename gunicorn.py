@@ -1,7 +1,7 @@
 import os
 import multiprocessing
 
-bind = '0.0.0.0:5750'
+bind = '0.0.0.0:3076'
 backlog = 2048
 
 worker_class = 'gevent'
