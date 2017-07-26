@@ -3,7 +3,7 @@ import jsonpath
 import os
 from requests import Request, Session
 import logging
-from rasdaman_stats.errors import Error, GeostoreNotFound
+from rasdaman_stats.errors import Error, GeostoreNotFoundError, GeostoreGenericError, FieldsGenericError
 import tempfile
 from rasterstats import zonal_stats
 from osgeo import gdal
@@ -99,12 +99,12 @@ def get_geostore(geostore):
             'method': 'GET'
         }
         response = request_to_microservice(request_options)
-        if 'errors' in response:
-            raise GeostoreNotFound(message='Error obtaining geostore')
+        if not response or response.get('errors'):
+            raise GeostoreNotFoundError(message='Error obtaining geostore')
         logging.debug('GEOSTORE RESPONSE: ' + str(response))
     except Exception as error:
         logging.error(str(error))
-        raise GeostoreNotFound(message='Error obtaining geostore')
+        raise GeostoreNotFoundError(message='Error obtaining geostore')
     return response
 
 def get_fields(dataset):
@@ -115,6 +115,8 @@ def get_fields(dataset):
             'method': 'GET'
         }
         response = request_to_microservice(request_options)
+        if not response or response.get('errors'):
+            raise FieldsGenericError(message='Error obtaining fields')
     except Exception as error:
-        raise error
+        raise FieldsGenericError(message="Error obtaining fields")
     return response

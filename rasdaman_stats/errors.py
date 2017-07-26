@@ -10,5 +10,11 @@ class Error(Exception):
             'message': self.message
         }
 
-class GeostoreNotFound(Error):
+class GeostoreNotFoundError(Error):
+    pass
+
+class GeostoreGenericError(Error):
+    pass
+
+class FieldsGenericError(Error):
     pass
