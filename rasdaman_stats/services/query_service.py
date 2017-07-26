@@ -80,11 +80,13 @@ def get_stats(config):
 
 
     
-    with tempfile.NamedTemporaryFile(suffix='.tiff', delete=True) as f:
+    with tempfile.NamedTemporaryFile(suffix='.tiff', delete=False) as f:
         for chunk in response.iter_content(chunk_size=1024):
+            raster_filename = f.name
             f.write(chunk)
         # dataset = gdal.Open(f.name)
-    with tempfile.NamedTemporaryFile(suffix='.geo.json', delete=True) as g:
+    with tempfile.NamedTemporaryFile(suffix='.geo.json', delete=False) as g:
+        geotiff_filename = g.name
         logging.debug("GEOJSON")
         encoded_data = json.dumps(vector_mask["data"]["attributes"]["geojson"])
         logging.debug(encoded_data)
@@ -94,6 +96,9 @@ def get_stats(config):
         stats = zonal_stats(g.name, f.name, all_touched=True)
     logging.info("STATS")
     logging.info(stats)
+    
+    os.remove(os.path.join('/tmp', f.name))
+    os.remove(os.path.join('/tmp', g.name))
     return stats
 
 def get_geostore(config):
