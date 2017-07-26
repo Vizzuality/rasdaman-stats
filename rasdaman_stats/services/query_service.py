@@ -80,11 +80,11 @@ def get_stats(config):
 
 
     
-    with tempfile.NamedTemporaryFile(suffix='.tiff', delete=False) as f:
+    with tempfile.NamedTemporaryFile(suffix='.tiff', delete=True) as f:
         for chunk in response.iter_content(chunk_size=1024):
             f.write(chunk)
         # dataset = gdal.Open(f.name)
-    with tempfile.NamedTemporaryFile(suffix='.geo.json', delete=False) as g:
+    with tempfile.NamedTemporaryFile(suffix='.geo.json', delete=True) as g:
         logging.debug("GEOJSON")
         encoded_data = json.dumps(vector_mask["data"]["attributes"]["geojson"])
         logging.debug(encoded_data)
