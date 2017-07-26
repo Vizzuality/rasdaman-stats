@@ -3,7 +3,7 @@ import jsonpath
 import os
 from requests import Request, Session
 import logging
-from rasdaman_stats.errors import Error
+from rasdaman_stats.errors import Error, GeostoreNotFound
 import tempfile
 from rasterstats import zonal_stats
 from osgeo import gdal
@@ -17,7 +17,7 @@ API_VERSION = os.getenv('API_VERSION')
 def get_stats(config):
     # TODO: errors
     logging.info('[QueryService] Obtaining statistics')
-
+    
     dataset = config.get('datasetId')
     logging.info('[QueryService] Getting mask from geostore')
     vector_mask = get_geostore(config.get('geostore'))
@@ -99,8 +99,12 @@ def get_geostore(geostore):
             'method': 'GET'
         }
         response = request_to_microservice(request_options)
+        if 'errors' in response:
+            raise GeostoreNotFound(message='Error obtaining geostore')
+        logging.debug('GEOSTORE RESPONSE: ' + str(response))
     except Exception as error:
-        raise error
+        logging.error(str(error))
+        raise GeostoreNotFound(message='Error obtaining geostore')
     return response
 
 def get_fields(dataset):

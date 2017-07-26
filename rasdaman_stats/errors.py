@@ -1,6 +1,4 @@
 """ERRORS"""
-
-
 class Error(Exception):
 
     def __init__(self, message):
@@ -11,3 +9,6 @@ class Error(Exception):
         return {
             'message': self.message
         }
+
+class GeostoreNotFound(Error):
+    pass
