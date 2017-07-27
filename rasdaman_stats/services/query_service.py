@@ -60,6 +60,7 @@ def get_stats(config):
         return stats
     except (UnboundLocalError, RasterioIOError):
         os.remove(os.path.join('/tmp', rasterFile))
+        os.remove(os.path.join('/tmp', vectorFile))
         raise DimensionalityError(message='Target raster is not 2D')
         
 
