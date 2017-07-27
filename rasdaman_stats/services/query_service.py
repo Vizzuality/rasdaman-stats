@@ -6,6 +6,7 @@ import logging
 from rasdaman_stats.errors import Error, GeostoreNotFoundError, GeostoreGenericError, FieldsGenericError, DimensionalityError
 import tempfile
 from rasterstats import zonal_stats
+from rasterio.errors import RasterioIOError
 from osgeo import gdal
 from gdalconst import *
 from CTRegisterMicroserviceFlask import request_to_microservice
@@ -50,16 +51,15 @@ def get_stats(config):
         "], \"GTiff\")"
     ]
     wcps_query = ''.join(query_array)
-
-    try:
-        rasterFile  = get_raster_file(dataset, wcps_query)
-        vectorFile = get_vector_file(vector_mask)
-    
+    rasterFile  = get_raster_file(dataset, wcps_query)
+    vectorFile = get_vector_file(vector_mask)
+    try:    
         stats = zonal_stats(vectorFile, rasterFile, all_touched=True)
         os.remove(os.path.join('/tmp', rasterFile))
         os.remove(os.path.join('/tmp', vectorFile))
         return stats
-    except UnboundLocalError:
+    except (UnboundLocalError, RasterioIOError):
+        os.remove(os.path.join('/tmp', rasterFile))
         raise DimensionalityError(message='Target raster is not 2D')
         
 
@@ -89,10 +89,10 @@ def get_raster_file(dataset, query):
     response = session.send(prepped)
     with tempfile.NamedTemporaryFile(suffix='.tiff', delete=False) as f:
         for chunk in response.iter_content(chunk_size=1024):
-            raster_filename = f.name
             f.write(chunk)
+        raster_filename = f.name
         f.close()
-    return raster_filename
+        return raster_filename
 
 def get_geostore(geostore):
     logging.info('[QueryService] Getting geostore')
