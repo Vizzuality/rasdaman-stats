@@ -3,7 +3,7 @@ import logging
 import json
 from flask import jsonify, Blueprint, request
 from rasdaman_stats.routes.api import error
-from rasdaman_stats.errors import Error, GeostoreNotFound
+from rasdaman_stats.errors import Error, GeostoreNotFoundError, DimensionalityError
 from rasdaman_stats.validators import validate_geostore
 from rasdaman_stats.services import query_service
 
@@ -35,6 +35,8 @@ def stats(dataset_id):
     logging.info("Options: " + str(options))
     try:
         stats = query_service.get_stats(options)
-    except GeostoreNotFound:
+    except GeostoreNotFoundError:
         return error(status=404, detail="Geostore not found")
+    except DimensionalityError:
+        return error(status=400, detail="Raster dimensionality needs to be strictly 2")
     return json.dumps({"data": stats})

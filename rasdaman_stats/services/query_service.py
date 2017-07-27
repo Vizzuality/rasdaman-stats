@@ -3,7 +3,7 @@ import jsonpath
 import os
 from requests import Request, Session
 import logging
-from rasdaman_stats.errors import Error, GeostoreNotFound
+from rasdaman_stats.errors import Error, GeostoreNotFoundError, GeostoreGenericError, FieldsGenericError, DimensionalityError
 import tempfile
 from rasterstats import zonal_stats
 from osgeo import gdal
@@ -51,14 +51,17 @@ def get_stats(config):
     ]
     wcps_query = ''.join(query_array)
 
+    try:
+        rasterFile  = get_raster_file(dataset, wcps_query)
+        vectorFile = get_vector_file(vector_mask)
     
-    rasterFile  = get_raster_file(dataset, wcps_query)
-    vectorFile = get_vector_file(vector_mask)
-    
-    stats = zonal_stats(vectorFile, rasterFile, all_touched=True)
-    os.remove(os.path.join('/tmp', rasterFile))
-    os.remove(os.path.join('/tmp', vectorFile))
-    return stats
+        stats = zonal_stats(vectorFile, rasterFile, all_touched=True)
+        os.remove(os.path.join('/tmp', rasterFile))
+        os.remove(os.path.join('/tmp', vectorFile))
+        return stats
+    except UnboundLocalError:
+        raise DimensionalityError(message='Target raster is not 2D')
+        
 
 def get_vector_file(vector_mask):
     with tempfile.NamedTemporaryFile(suffix='.geo.json', delete=False) as f:
@@ -99,12 +102,12 @@ def get_geostore(geostore):
             'method': 'GET'
         }
         response = request_to_microservice(request_options)
-        if 'errors' in response:
-            raise GeostoreNotFound(message='Error obtaining geostore')
+        if not response or response.get('errors'):
+            raise GeostoreNotFoundError(message='Error obtaining geostore')
         logging.debug('GEOSTORE RESPONSE: ' + str(response))
     except Exception as error:
         logging.error(str(error))
-        raise GeostoreNotFound(message='Error obtaining geostore')
+        raise GeostoreNotFoundError(message='Error obtaining geostore')
     return response
 
 def get_fields(dataset):
@@ -115,6 +118,8 @@ def get_fields(dataset):
             'method': 'GET'
         }
         response = request_to_microservice(request_options)
+        if not response or response.get('errors'):
+            raise FieldsGenericError(message='Error obtaining fields')
     except Exception as error:
-        raise error
+        raise FieldsGenericError(message="Error obtaining fields")
     return response
