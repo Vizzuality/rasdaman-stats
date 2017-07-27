@@ -18,3 +18,6 @@ class GeostoreGenericError(Error):
 
 class FieldsGenericError(Error):
     pass
+
+class DimensionalityError(Error):
+    pass

@@ -3,7 +3,7 @@ import jsonpath
 import os
 from requests import Request, Session
 import logging
-from rasdaman_stats.errors import Error, GeostoreNotFoundError, GeostoreGenericError, FieldsGenericError
+from rasdaman_stats.errors import Error, GeostoreNotFoundError, GeostoreGenericError, FieldsGenericError, DimensionalityError
 import tempfile
 from rasterstats import zonal_stats
 from osgeo import gdal
@@ -51,14 +51,17 @@ def get_stats(config):
     ]
     wcps_query = ''.join(query_array)
 
+    try:
+        rasterFile  = get_raster_file(dataset, wcps_query)
+        vectorFile = get_vector_file(vector_mask)
     
-    rasterFile  = get_raster_file(dataset, wcps_query)
-    vectorFile = get_vector_file(vector_mask)
-    
-    stats = zonal_stats(vectorFile, rasterFile, all_touched=True)
-    os.remove(os.path.join('/tmp', rasterFile))
-    os.remove(os.path.join('/tmp', vectorFile))
-    return stats
+        stats = zonal_stats(vectorFile, rasterFile, all_touched=True)
+        os.remove(os.path.join('/tmp', rasterFile))
+        os.remove(os.path.join('/tmp', vectorFile))
+        return stats
+    except UnboundLocalError:
+        raise DimensionalityError(message='Target raster is not 2D')
+        
 
 def get_vector_file(vector_mask):
     with tempfile.NamedTemporaryFile(suffix='.geo.json', delete=False) as f:
