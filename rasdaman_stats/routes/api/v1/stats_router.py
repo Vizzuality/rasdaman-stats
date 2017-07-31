@@ -1,15 +1,10 @@
 """API ROUTER"""
-
-import rasterio
 import logging
 import json
-import copy
 from flask import jsonify, Blueprint, request
 from rasdaman_stats.routes.api import error
+from rasdaman_stats.errors import Error, GeostoreNotFoundError, DimensionalityError
 from rasdaman_stats.validators import validate_geostore
-# from rasdaman_stats.middleware import set_something
-# from rasdaman_stats.serializers import serialize_greeting
-
 from rasdaman_stats.services import query_service
 
 rasdastats_endpoints = Blueprint('rasdastats_endpoints', __name__)
@@ -27,20 +22,21 @@ def stats(dataset_id):
     }
 
     geostore = {
-        'geostore': request.json['geostore']
+            'geostore': request.json['geostore']
     } if request.json['geostore'] else {'geostore': None}
-
+        
     additional_axes = {
         'additionalAxes': request.json['additionalAxes']
     } if 'additionalAxes' in request.json else {
         'additionalAxes': None
     }
     
-    options = {**dataset, **geostore, **additional_axes}
-
-    
+    options = {**dataset, **geostore, **additional_axes}    
     logging.info("Options: " + str(options))
-
-    stats = query_service.get_stats(options)
-
+    try:
+        stats = query_service.get_stats(options)
+    except GeostoreNotFoundError:
+        return error(status=404, detail="Geostore not found")
+    except DimensionalityError:
+        return error(status=400, detail="Raster dimensionality needs to be strictly 2")
     return json.dumps({"data": stats})

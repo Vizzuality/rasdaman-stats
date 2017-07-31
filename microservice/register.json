@@ -1,4 +1,13 @@
 {
-    "name": "#(service.name)",
-    "endpoints": []
+    "name": "rasdaman-stats",
+    "endpoints": [
+	{
+	    "path": "/v1/stats/:dataset_id",
+	    "method": "POST",
+	    "redirect": {
+		"method": "POST",
+		"path": "/api/v1/rasdastats/stats/:dataset_id"
+	    }
+	}
+    ]
 }

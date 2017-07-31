@@ -3,13 +3,12 @@ import jsonpath
 import os
 from requests import Request, Session
 import logging
-from rasdaman_stats.errors import Error
+from rasdaman_stats.errors import Error, GeostoreNotFoundError, GeostoreGenericError, FieldsGenericError, DimensionalityError
 import tempfile
 from rasterstats import zonal_stats
+from rasterio.errors import RasterioIOError
 from osgeo import gdal
 from gdalconst import *
-
-
 from CTRegisterMicroserviceFlask import request_to_microservice
 
 CT_URL = os.getenv('CT_URL')
@@ -19,29 +18,26 @@ API_VERSION = os.getenv('API_VERSION')
 def get_stats(config):
     # TODO: errors
     logging.info('[QueryService] Obtaining statistics')
-
+    
+    dataset = config.get('datasetId')
     logging.info('[QueryService] Getting mask from geostore')
-    vector_mask = get_geostore(config)
-    logging.debug(vector_mask)
-
+    vector_mask = get_geostore(config.get('geostore'))
     bbox = vector_mask["data"]["attributes"]["bbox"]
-    logging.debug("BBOX: " + ', '.join(str(coord) for coord in bbox))
 
-    fields = get_fields(config)
+    logging.debug('[QueryService] Getting fields from dataset')
+    fields = get_fields(dataset) 
     coverage_name = fields["coverageId"]
 
+    # If there are any additional axes present:
     extra_axes_dct = config.get('additionalAxes')
     extra_axes_str_arr = []
+    extra_axes_str = ""
     if extra_axes_dct:
         for axis, datum in extra_axes_dct.items():
             extra_axes_str_arr.append( "".join([",", str(axis), "(\"", str(datum), "\")"]))
             extra_axes_str = "".join(extra_axes_str_arr)
-    else:
-        extra_axes_str = ""
 
-    # Only slicing - not subsetting
-    logging.info(str(extra_axes_str))
-
+    # Building the query
     query_array = [
         "for cov in (",
         coverage_name,
@@ -54,16 +50,33 @@ def get_stats(config):
         extra_axes_str,
         "], \"GTiff\")"
     ]
-
     wcps_query = ''.join(query_array)
-    logging.debug("WCPS: " + wcps_query)
+    rasterFile  = get_raster_file(dataset, wcps_query)
+    vectorFile = get_vector_file(vector_mask)
+    try:    
+        stats = zonal_stats(vectorFile, rasterFile, all_touched=True)
+        os.remove(os.path.join('/tmp', rasterFile))
+        os.remove(os.path.join('/tmp', vectorFile))
+        return stats
+    except (UnboundLocalError, RasterioIOError):
+        os.remove(os.path.join('/tmp', rasterFile))
+        os.remove(os.path.join('/tmp', vectorFile))
+        raise DimensionalityError(message='Target raster is not 2D')
+        
 
+def get_vector_file(vector_mask):
+    with tempfile.NamedTemporaryFile(suffix='.geo.json', delete=False) as f:
+        vector_filename = f.name
+        encoded_data = json.dumps(vector_mask["data"]["attributes"]["geojson"])
+        f.write(encoded_data.encode())
+        f.close()
+    return vector_filename
+
+def get_raster_file(dataset, query):
     logging.info('[QueryService] Getting raster from rasdaman')
     # Need to update the CT plugin to allow raw responses
-
-    request_url = CT_URL + '/' + API_VERSION + '/query/' + config.get('datasetId')
+    request_url = CT_URL + '/' + API_VERSION + '/query/' + dataset
     session = Session()
-
     request = Request(
         method = "POST",
         url = request_url,
@@ -71,51 +84,43 @@ def get_stats(config):
             'content-type': 'application/json',
             'Authorization': 'Bearer ' + CT_TOKEN
         },
-        data = json.dumps({"wcps": wcps_query})
+        data = json.dumps({"wcps": query})
     )
-
     prepped = session.prepare_request(request)
     response = session.send(prepped)
-
-
-
-    
     with tempfile.NamedTemporaryFile(suffix='.tiff', delete=False) as f:
         for chunk in response.iter_content(chunk_size=1024):
             f.write(chunk)
-        # dataset = gdal.Open(f.name)
-    with tempfile.NamedTemporaryFile(suffix='.geo.json', delete=False) as g:
-        logging.debug("GEOJSON")
-        encoded_data = json.dumps(vector_mask["data"]["attributes"]["geojson"])
-        logging.debug(encoded_data)
-        g.write(encoded_data.encode())
-        g.close()
-        logging.info("Files: " + f.name + " " + g.name)
-        stats = zonal_stats(g.name, f.name, all_touched=True)
-    logging.info("STATS")
-    logging.info(stats)
-    return stats
+        raster_filename = f.name
+        f.close()
+        return raster_filename
 
-def get_geostore(config):
+def get_geostore(geostore):
     logging.info('[QueryService] Getting geostore')
     try:
         request_options = {
-            'uri': '/geostore/' + config.get('geostore'),
+            'uri': '/geostore/' + geostore,
             'method': 'GET'
         }
         response = request_to_microservice(request_options)
+        if not response or response.get('errors'):
+            raise GeostoreNotFoundError(message='Error obtaining geostore')
+        logging.debug('GEOSTORE RESPONSE: ' + str(response))
     except Exception as error:
-        raise error
+        logging.error(str(error))
+        raise GeostoreNotFoundError(message='Error obtaining geostore')
     return response
 
-def get_fields(config):
+def get_fields(dataset):
     logging.info('[QueryService] Getting fields for dataset')
     try:
         request_options = {
-            'uri': '/fields/' + config.get('datasetId'),
+            'uri': '/fields/' + dataset,
             'method': 'GET'
         }
         response = request_to_microservice(request_options)
+        if not response or response.get('errors'):
+            raise FieldsGenericError(message='Error obtaining fields')
     except Exception as error:
-        raise error
+        raise FieldsGenericError(message="Error obtaining fields")
     return response

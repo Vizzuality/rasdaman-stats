@@ -1,6 +1,4 @@
 """ERRORS"""
-
-
 class Error(Exception):
 
     def __init__(self, message):
@@ -11,3 +9,15 @@ class Error(Exception):
         return {
             'message': self.message
         }
+
+class GeostoreNotFoundError(Error):
+    pass
+
+class GeostoreGenericError(Error):
+    pass
+
+class FieldsGenericError(Error):
+    pass
+
+class DimensionalityError(Error):
+    pass

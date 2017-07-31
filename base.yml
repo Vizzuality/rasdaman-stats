@@ -1,7 +1,7 @@
 base:
   build: .
   ports:
-    - "5750:5750"
+    - "3076:3076"
   environment:
-    PORT: 5750
+    PORT: 3076
   container_name: rasdaman-stats

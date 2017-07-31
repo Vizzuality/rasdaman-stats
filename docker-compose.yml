@@ -1,7 +1,7 @@
 prod:
   image: vizzuality/rasdaman-stats:1.0.0${STAGING}
   ports:
-    - "5750"
+    - "3076"
   env_file:
     - prod.env
   command: start
